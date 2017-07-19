@@ -1,0 +1,35 @@
+
+<view class="weui-cells weui-cells_after-title" style="position: absolute;top: 0;left:0;right: 0;">
+  <view class="weui-cell">
+      <view class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+          <image src="{{ userInfo.avatarUrl }}" style="width: 50px; height: 50px; display: block;border-radius: 50%;"/>
+      </view>
+      <view class="weui-cell__bd">
+          <view>{{ userInfo.nickName }}</view>
+      </view>
+      <view class="weui-cell__bd" style="text-align: right;">
+        <button class="weui-btn mini-btn" type="info" size="mini" bindtap="ret">返回</button>
+      </view>
+  </view>
+</view>
+<view class="page" style="padding-top: 75px;">
+
+<view class="weui-cells weui-cells_after-title">
+  <block  wx:for="{{zdList}}" wx:key="forzdList0r" wx:for-item="item" wx:for-index="sy">
+    <view class="weui-cell" bindtap="getinfo" data-did="{{sy}}">
+        <view class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+            <image src="{{ item.shopId.image }}" style="width: 50px; height: 50px; display: block;border-radius: 50%;"/>
+        </view>
+        <view class="weui-cell__bd">
+            <view>{{item.shopId.shopName}}</view>
+            <view style="font-size: 13px;color: #888888;">最近消费:{{item.updateDate}}</view>
+        </view>
+        <view class="weui-cell__bd" style="max-width:25%;text-align: center;color: #ff0000;">
+            <view>￥{{item.orderFee}}</view>
+        </view>
+        <view class="weui-cell__ft weui-cell__ft_in-access"/>
+    </view>
+  </block>
+</view>
+<view style="text-align: center;font-size: 13px;color: #888888;margin-top:20px;">{{msg}}</view>
+</view>

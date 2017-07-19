@@ -1,0 +1,2 @@
+
+<map id="dianmap" style="height:{{windowHeight}}px;" markers="{{markers}}" latitude="{{tapxy.latitude}}" longitude="{{tapxy.longitude}}" class="container" scale="14" controls="{{controls}}" show-location="show-location" bindcontroltap="dcontroltap" bindregionchange="regionchange" bindmarkertap="markertap"> </map>

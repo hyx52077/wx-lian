@@ -1,0 +1,170 @@
+  
+<style lang="less"> 
+ .container { height: 100%;display: flex; flex-direction: column;  align-items: center;justify-content: space-between;box-sizing: border-box;background: #f8f8f8;} 
+ .weui-cells::before {
+  border-top:0;
+ }
+button[type="info"] {
+color:#FFF;
+background-color: #5bc0de;
+border-color: #46b8da;
+}
+.button-hover[type="info"] {
+color:#FFF;   
+background-color: #31b0d5;
+border-color: #269abc;
+}
+</style>
+
+<template>
+<view class="weui-cells weui-cells_after-title" style="position: absolute;top: 0;left:0;right: 0;">
+  <view class="weui-cell">
+      <view class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+          <image src="{{ userInfo.avatarUrl }}" style="width: 50px; height: 50px; display: block;border-radius: 50%;"/>
+      </view>
+      <view class="weui-cell__bd">
+          <view>{{ userInfo.nickName }}</view>
+      </view>
+      <view class="weui-cell__bd" style="text-align: right;">
+        <button class="weui-btn mini-btn" type="info" size="mini" @tap="ret">返回</button>
+      </view>
+  </view>
+</view>
+<view class="page" style="padding-top: 75px;" >
+
+<view class="weui-cells weui-cells_after-title">
+  <block wx:for="{{zdList}}" wx:key="forzdList0r" wx:for-item="item" wx:for-index="sy">
+    <view class="weui-cell" @tap="getinfo" data-did="{{sy}}">
+        <view class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+            <image src="{{ item.shopId.image }}" style="width: 50px; height: 50px; display: block;border-radius: 50%;"/>
+        </view>
+        <view class="weui-cell__bd">
+            <view>{{item.shopId.shopName}}</view>
+            <view style="font-size: 13px;color: #888888;">最近消费:{{item.updateDate}}</view>
+        </view>
+        <view class="weui-cell__bd" style="max-width:25%;text-align: center;color: #ff0000;">
+            <view>￥{{item.orderFee}}</view>
+        </view>
+        <view class="weui-cell__ft weui-cell__ft_in-access"></view>
+    </view>
+  </block>
+</view>
+<view style="text-align: center;font-size: 13px;color: #888888;margin-top:20px;">{{msg}}</view>
+</view>
+</template>
+<script>
+import wepy from 'wepy'
+export default class Zd extends wepy.page {
+  config = {
+    enablePullDownRefresh: true,
+    backgroundTextStyle: 'dark' 
+  }
+  data = {
+    userInfo: null,
+    tabindex: 0,
+    zdList: null,msg: '加载数据中'
+  }
+  methods = {
+    getinfo (e) {
+      let id = e.currentTarget.dataset.did 
+      let that = this
+      let row =  that.zdList[id]
+      if (that.tabindex==0) {
+        wx.showModal({
+          title: '申请返利',
+          content: '确定进行申请返利',
+          success: function(res) {
+            if (res.confirm) {
+              console.log('用户点击确定')
+              that.tixian({rewardId: row.id})
+            } else if (res.cancel) {
+              console.log('用户点击取消')
+            }
+          }
+        })
+      }
+    },
+    ret (e) {
+      wepy.switchTab({
+          url: '/pages/user'
+      }) 
+    }
+  }
+  tixian (d) {
+    let that = this
+    if (!d) { d = {} }
+    d.openid = wx.getStorageSync('Openid')
+    wepy.request({
+      url: that.$parent.globalData.url + 'applyReward',
+      data: d,
+      method: 'POST',
+      header: {'content-type':'application/x-www-form-urlencoded'},
+      success: function(ds) { 
+       console.log(ds.data)
+        var data = ds.data.code
+        if (!data) {  return }
+        wx.showToast({
+          title: '等待后台审核',
+          icon: 'success',
+          duration: 2000
+        })
+        that.onPullDownRefresh()
+        that.$apply()
+      }
+    })
+  }
+  getddlist (index,d) {
+    if (!d) { d = {} }
+    let that = this
+    d.openid = wx.getStorageSync('Openid')
+    d.withdrawalsFlag = index
+    d.appid = that.$parent.globalData.APPID
+    wepy.request({
+      url: that.$parent.globalData.url + 'rewardList',
+      data: d,
+      method: 'POST',
+      header: {'content-type':'application/x-www-form-urlencoded'},
+      success: function(ds) { 
+        wepy.stopPullDownRefresh()
+        var data = ds.data.data
+        if (!data) {  
+          that.msg = '已加载全部' 
+          that.$apply()
+          return 
+        }
+
+        for (var i = 0; i < data.length; i++) {
+          let lengt = that.zdList.length
+          that.zdList[lengt] = data[i]
+        }
+        that.msg = '已加载完毕'
+        that.$apply()
+      }
+    })
+  }
+  onLoad (option) {
+    this.tabindex = option.index
+    let self = this
+    self.msg = '加载数据中'
+    let id = self.tabindex
+    self.zdList = []
+    let title = ['申请返利','申请中','已到帐']
+    wx.setNavigationBarTitle({
+      title: title[id]
+    })
+    this.$parent.getUserInfo(function (userInfo) {
+      if (userInfo) {
+        self.userInfo = userInfo
+        self.$apply()
+      }
+    })
+    self.getddlist(this.tabindex,{})
+  }
+  onPullDownRefresh() {
+    let id = this.tabindex
+    this.zdList = []
+    this.msg = '加载数据中'
+    this.getddlist(this.tabindex,{})
+  }
+}
+</script>

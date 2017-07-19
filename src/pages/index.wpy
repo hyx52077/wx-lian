@@ -1,0 +1,153 @@
+
+<style lang="less"> 
+ .container { width:100%;height:300px;display: flex; flex-direction: column;  align-items: center;justify-content: space-between;box-sizing: border-box;background: #f8f8f8;} 
+ </style>
+
+<template>
+<map id="dianmap" style="height:{{windowHeight}}px;" markers="{{markers}}" latitude="{{tapxy.latitude}}" longitude="{{tapxy.longitude}}"  class="container" scale="14" controls="{{controls}}" show-location bindcontroltap="dcontroltap" bindregionchange="regionchange" bindmarkertap="markertap"> </map>
+</template>
+<script>
+import wepy from 'wepy'
+export default class Index extends wepy.page {
+  data = {
+    'tapxy': {'latitude': 23.099994, 'longitude': 113.324520},
+    'mapCtx': null,
+    'windowHeight': 300,
+    'markerslist': [],
+    'markers': [{
+      id: 0,
+      latitude: 23.109994,
+      longitude: 113.323520,
+      iconPath: '/images/dian.png',
+      width: 35,
+      height: 35
+    }],
+    'controls': [{
+      id: 1,
+      iconPath: '/images/dingwei.png',
+      position: {
+        left: 10,
+        top: 300 - 50,
+      },
+      clickable: true
+    }, {
+      id: 2,
+      iconPath: '/images/biaoji.png',
+      position: {
+        left: 50,
+        top: 300 - 50,
+        width: 0,
+        height: 0
+      },
+      clickable: true
+    }]
+  }
+  methods = {
+    markertap (e) {
+      let index = e.markerId
+      let obj = {
+        latitude: this.markerslist[index].latitude,
+        longitude: this.markerslist[index].longitude,
+        scale: 16,
+        name: this.markerslist[index].shopName,
+        address: this.markerslist[index].shopAddress
+      }
+      console.log(obj)
+      wepy.openLocation(obj)
+    },
+    moveToLocation () {
+      this.mapCtx.moveToLocation()
+    },
+    dcontroltap (e) {
+      if (e.controlId === 1) {
+        this.mapCtx.moveToLocation()
+      } 
+    },
+    regionchange (e) {
+      //地图移动
+    }
+  }
+  onReady (e) {
+    this.mapCtx = wepy.createMapContext('dianmap')
+   
+  }
+  getshopList () {
+    let that = this
+    that.markers = []
+
+    wepy.request({
+      url: that.$parent.globalData.url + 'shopList',
+      data: {'appid': that.$parent.globalData.APPID},
+      method: 'POST',
+      header: {'content-type':'application/x-www-form-urlencoded'},
+      success: function(data) {
+        if(!parseInt(data.data.code)){
+          return
+        }
+        let t = that
+        let fun = function(k,d){
+          if (!d.shopCoordinate) {
+            return
+          }
+          let xy = d.shopCoordinate.split(',')
+
+          d.latitude = Number(xy[0])
+          d.longitude = Number(xy[1])
+          let mp = {
+              id: t.markers.length,
+              latitude: Number(xy[0]),
+              longitude: Number(xy[1]),
+              iconPath: '/images/dian.png',
+              width: 35,
+              height: 35
+            }
+            t.markers[t.markers.length] = mp
+            t.markerslist[t.markerslist.length] = d
+          }
+          for (var i = 0; i < data.data.data.length ; i++) {
+            fun(i,data.data.data[i])
+          }
+        that.$apply()
+      }
+    })
+  }
+  onLoad (option) {
+    let selt = this
+    wepy.setNavigationBarTitle({
+      title: '附近商户'
+    })
+    wepy.getSystemInfo({
+      success: function(res) {
+        selt.windowHeight = res.windowHeight
+        for (var i = selt.controls.length - 1; i >= 0; i--) {
+          selt.controls[i].position.top = res.windowHeight - 100
+        }
+        selt.controls[1].position.left = res.windowWidth / 2 - 5
+        selt.controls[1].position.top = res.windowHeight / 2 - 5
+        selt.controls[1].position.width = 10
+        selt.controls[1].position.height = 22
+        selt.$apply()
+      }
+    })
+    wepy.getLocation({
+      type: 'wgs84',
+      success: function(res) {
+        selt.tapxy = res
+        selt.$apply()
+      },
+      fail:function(e){
+        console.log(e)
+        wx.showModal({
+          title: '定位失败',
+          content: "获取不到当前定位",
+          success: function(res) {
+           wx.openSetting()
+          } 
+        })
+      }
+    })
+    selt.getshopList()
+  }
+}
+
+</script>

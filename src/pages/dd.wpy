@@ -1,0 +1,236 @@
+  
+<style lang="less"> 
+ .container { height: 100%;display: flex; flex-direction: column;  align-items: center;justify-content: space-between;box-sizing: border-box;background: #f8f8f8;} 
+ .weui-cells::before {
+  border-top:0;
+ }
+button[type="info"] {
+color:#FFF;
+background-color: #5bc0de;
+border-color: #46b8da;
+}
+.button-hover[type="info"] {
+color:#FFF;   
+background-color: #31b0d5;
+border-color: #269abc;
+}
+</style>
+
+<template>
+<block wx:if="{{show}}">
+  <view class="weui-cells weui-cells_after-title" style="position: absolute;top: 0;left:0;right: 0;">
+    <view class="weui-cell">
+        <view class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+            <image wx:if="{{tabindex===0}}" src="{{ userInfo.avatarUrl }}" style="width: 50px; height: 50px; display: block;border-radius: 50%;"/>
+            <image wx:if="{{tabindex===1}}" src="{{ dianInfo.image }}" style="width: 50px; height: 50px; display: block;border-radius: 50%;"/>
+        </view>
+        <view class="weui-cell__bd">
+            <view wx:if="{{tabindex===0}}">{{ userInfo.nickName }}</view>
+            <view wx:if="{{tabindex===1}}">{{ dianInfo.shopName }}</view>
+        </view>
+        <view class="weui-cell__bd" style="text-align: right;">
+          <button class="weui-btn mini-btn" type="info" size="mini" @tap="ret">返回</button>
+        </view>
+    </view>
+  </view>
+  <view class="page" style="padding-top: 75px;" >
+  <view wx:if="{{tabindex===0}}">
+      <view class="weui-cells weui-cells_after-title">
+       
+        <block wx:for="{{orderList}}" wx:key="fororderList" wx:for-item="item">
+          <view class="weui-cell" @tap="getinfo" id="{{index}}">
+              <view class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+                  <image src="{{ item.shopId.image }}" style="width: 50px; height: 50px; display: block;border-radius: 50%;" mode="aspectFill"/>
+              </view>
+              <view class="weui-cell__bd">
+                  <view>{{item.shopId.shopName}}</view>
+                  <view style="font-size: 13px;color: #888888;">最近消费:{{item.updateDate}}</view>
+              </view>
+              <view class="weui-cell__bd" style="max-width:28%;text-align: center;color: #ff0000;">
+                  <view>￥{{item.orderFee}}</view>
+              </view>
+              <view class="weui-cell__ft weui-cell__ft_in-access"></view>
+          </view>
+        </block>
+      </view>
+  </view>
+  <view wx:if="{{tabindex===1}}">
+    <view class="weui-cells weui-cells_after-title">
+      <block wx:for="{{myOrder}}" wx:key="fororderList" wx:for-item="item">
+        <view class="weui-cell" style="background: #45aeea;">
+            <view class="weui-cell__hd"  style="position: relative;font-size:1.5em;margin-right: 10px;">{{item.rownum}}</view>
+            <view class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+                <image src="{{ item.avatarUrl }}" style="width: 50px; height: 50px; display: block;border-radius: 50%;"/>
+            </view>
+            <view class="weui-cell__bd">
+                <view>{{item.shopId.shopName}}</view>
+                <view style="font-size: 13px;color: #fff;">最近消费:{{item.updateDate}}</view>
+            </view>
+            <view class="weui-cell__bd" style="max-width:25%;text-align: center;color: #ff0000;">
+                <view>￥{{item.orderFee}}</view>
+            </view>
+        </view>
+      </block>
+      <block wx:for="{{rewardList}}" wx:key="fororderList" wx:for-item="item">
+        <view class="weui-cell">
+            <view class="weui-cell__hd"  style="position: relative;font-size:1.5em;margin-right: 10px;">{{index + 1}}</view>
+            <view class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+                <image src="{{ item.avatarUrl }}" style="width: 50px; height: 50px; display: block;border-radius: 50%;"/>
+            </view>
+            <view class="weui-cell__bd">
+                <view>{{item.shopId.shopName}}</view>
+                <view style="font-size: 13px;color: #888888;">最近消费:{{item.updateDate}}</view>
+            </view>
+            <view class="weui-cell__bd" style="max-width:25%;text-align: center;color: #ff0000;">
+                <view>￥{{item.orderFee}}</view>
+            </view>
+        </view>
+      </block>
+    </view>
+  </view>
+    <view style="text-align: center;font-size: 13px;color: #888888;margin-top:20px;">{{msg}}</view>
+  </view>
+</block>
+<block wx:if="{{!show}}">
+   <view class="page" style="padding-top: 75px;padding-left: 80px;" >没有记录</view>
+</block>
+</template>
+<script>
+import wepy from 'wepy'
+export default class Dd extends wepy.page {
+  config = {
+    enablePullDownRefresh: true,
+    backgroundTextStyle: 'dark'
+  }
+  data = {
+    userInfo: {},
+    dianInfo: {},
+    tabindex: 0,
+    myOrder: [],orderList: [], rewardList: [],msg: '正在加载中', dianid: 0,show: false,isReachBottom: false
+  }
+  methods = {
+    getinfo (e) {
+      let id = e.currentTarget.id
+      this.dianInfo = this.orderList[id].shopId
+      this.tabindex = 1
+      wx.setNavigationBarTitle({
+        title: '我的订单 - ' + this.dianInfo.shopName
+      })
+      id = this.orderList[id].shopId.id
+      this.dianid = id
+      this.msg = '加载数据中'
+      this.rewardList = []
+      this.getddlist(1,{shopId:id})
+      this.$apply()
+    },
+    ret (e) {
+      this.myOrder = null
+      if (this.tabindex===0) {
+        wepy.switchTab({
+          url: '/pages/user'
+        }) 
+      } 
+
+      if (this.tabindex===1) {
+        wx.setNavigationBarTitle({
+          title: '我的订单'
+        })
+        this.tabindex = 0
+      }
+
+    }
+  }
+  getddlist (index,d) {
+    let that = this
+    let u = ['myOrderList','shopOrderList']
+    if (!d) { d = {} }
+    d.openid = wx.getStorageSync('Openid')
+    d.appid = that.$parent.globalData.APPID
+    wepy.showLoading({title:'加载中'})
+     wepy.request({
+      url: that.$parent.globalData.url + u[index],
+      data: d,
+      method: 'POST',
+      header: {'content-type':'application/x-www-form-urlencoded'},
+      success: function(ds) { 
+        wepy.hideLoading()
+        wepy.stopPullDownRefresh()
+        if (index===0) {
+          var data = ds.data.data.list
+        }
+        if (index===1) {
+          var data = ds.data.data.shopOrderList
+          var order = ds.data.data.myOrder
+          that.myOrder = order
+        }
+
+        if (!data || data.length===0) { 
+           console.log(data)
+          that.msg = '已加载完毕'
+          that.$apply()
+          return 
+        }
+        
+        for (var i = 0; i <= data.length - 1; i++) {
+
+          if (index===0) {
+            that.orderList[that.orderList.length] = data[i]
+          }
+          if (index===1) {
+            that.rewardList[that.rewardList.length] = data[i]
+
+          }
+          that.msg = '已加载完毕'
+          
+          that.$apply()
+        }
+      }
+      })
+  }
+  onShow(){
+    let Sid = wepy.getStorageSync('ShowSid')
+    if(!Sid){
+      wepy.switchTab({
+        url: '/pages/user'
+      })
+    }else{
+      this.show = true
+    }
+  }
+  onLoad (option) {
+    let self = this
+    self.msg = '加载数据中'
+    self.myOrder = null
+    this.$parent.getUserInfo(function (userInfo) {
+      if (userInfo) {
+        self.userInfo = userInfo
+        self.$apply()
+      }
+    })
+    wx.setNavigationBarTitle({
+      title: '我的订单'
+    })
+    self.getddlist(0,{})
+  }
+  onPullDownRefresh() {
+    this.myOrder = null
+    this.msg = '加载数据中'
+    if (this.tabindex===0) {
+      this.orderList = []
+      this.getddlist(this.tabindex,{pageSize:10})
+    }
+    if (this.tabindex===1) {
+      this.rewardList = []
+      let id = this.dianid
+      this.getddlist(this.tabindex,{shopId:id})
+    }
+  }
+
+  onReachBottom(){
+    this.msg = '加载数据中'
+    if (this.tabindex===0 && isReachBottom === true) { 
+      this.getddlist(this.tabindex,{pageSize:this.orderList.length + 10 })
+    }
+  }
+}
+</script>

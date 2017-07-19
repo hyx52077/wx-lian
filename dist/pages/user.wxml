@@ -1,0 +1,34 @@
+
+<view class="page">
+  <view class="userInfo"><image class="userinfo-avatar" src="{{ userInfo.avatarUrl }}" background-size="cover"/> <view class="userinfo-userName">{{userInfo.nickName}}</view> </view>
+   <view class="weui-cells weui-cells_after-title margin-top-10"  wx:if="{{show}}">
+        <view class="weui-cell weui-cell_access" bindtap="scanCode">
+            <view class="weui-cell__hd"><view class="iconfont icon-saoyisao"/></view>
+            <view class="weui-cell__bd"> 扫一扫 </view>
+        </view>
+    </view>
+   <view class="weui-cells weui-cells_after-title margin-top-10"  wx:if="{{show}}">
+        <view class="weui-cell weui-cell_access" bindtap="godd">
+            <view class="weui-cell__hd"><view class="iconfont icon-wodedingdan"/></view>
+            <view class="weui-cell__bd"> 我的订单 </view>
+            <view class="weui-cell__ft weui-cell__ft_in-access" style="font-size: 0">
+                <view style="display: inline-block;vertical-align:middle; font-size: 17px;"> 详情 </view>
+            </view>
+        </view>
+    </view>
+    <view class="weui-cells weui-cells_after-title margin-top-10" wx:if="{{show}}">
+        <view class="weui-cell weui-cell_access" bindtap="gozd" data-sid="2">
+            <view class="weui-cell__hd"><view class="iconfont icon-0082"/></view>
+            <view class="weui-cell__bd"> 已到帐 </view>
+            <view class="weui-cell__ft weui-cell__ft_in-access" style="font-size: 0">
+                <view style="display: inline-block;vertical-align:middle; font-size: 17px;"> 明细 </view>
+            </view>
+        </view>
+    </view>
+    <view class="weui-cells weui-cells_after-title margin-top-10" wx:if="{{show}}">
+        <view class="weui-cell weui-cell_access">
+            <view class="weui-cell__hd"><view class="iconfont icon-0051"/></view>
+            <view class="weui-cell__bd">账户余额：￥{{userInfo.allMoney}} </view>
+        </view>
+    </view>
+</view>

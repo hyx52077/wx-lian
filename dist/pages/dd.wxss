@@ -1,0 +1,1 @@
+.container{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;box-sizing:border-box;background:#f8f8f8}.weui-cells::before{border-top:0}button[type="info"]{color:#FFF;background-color:#5bc0de;border-color:#46b8da}.button-hover[type="info"]{color:#FFF;background-color:#31b0d5;border-color:#269abc}

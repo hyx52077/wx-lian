@@ -1,0 +1,128 @@
+  
+<style lang="less"> 
+ .container { height: 100%;display: flex; flex-direction: column;  align-items: center;justify-content: space-between;box-sizing: border-box;background: #f8f8f8;} 
+
+.userInfo{
+  background: url(https://s.url.cn/qqun/xiaoqu/buluo/p/js/images/4.f7933fa3dac9f22ae141f0b7b4c99e7a.jpg) no-repeat 100% 100%;
+  text-align: center;
+  width: 100%;
+  /*filter: blur(5px);*/
+  padding-top:10px;
+ 
+}
+.userinfo-avatar{
+ width: 150rpx;
+ height: 150rpx;
+ border-radius: 50%;
+}
+.userinfo-userName{
+  font-size: 40rpx;
+}
+ </style>
+
+
+<template>
+<view class="page">
+  <view class="userInfo"><image class="userinfo-avatar" src="{{ userInfo.avatarUrl }}" background-size="cover"/> <view class="userinfo-userName">{{userInfo.nickName}}</view> </view>
+   <view class="weui-cells weui-cells_after-title margin-top-10" wx:if="{{show}}">
+        <view class="weui-cell weui-cell_access" @tap="scanCode" >
+            <view class="weui-cell__hd"><view class="iconfont icon-saoyisao"></view></view>
+            <view class="weui-cell__bd"> 扫一扫 </view>
+        </view>
+    </view>
+   <view class="weui-cells weui-cells_after-title margin-top-10" wx:if="{{show}}">
+        <view class="weui-cell weui-cell_access" @tap="godd" >
+            <view class="weui-cell__hd"><view class="iconfont icon-wodedingdan"></view></view>
+            <view class="weui-cell__bd"> 我的订单 </view>
+            <view class="weui-cell__ft weui-cell__ft_in-access" style="font-size: 0">
+                <view style="display: inline-block;vertical-align:middle; font-size: 17px;"> 详情 </view>
+            </view>
+        </view>
+    </view>
+    <view class="weui-cells weui-cells_after-title margin-top-10" wx:if="{{show}}">
+        <view class="weui-cell weui-cell_access"  @tap="gozd" data-sid="2">
+            <view class="weui-cell__hd"><view class="iconfont icon-0082"></view></view>
+            <view class="weui-cell__bd"> 已到帐 </view>
+            <view class="weui-cell__ft weui-cell__ft_in-access" style="font-size: 0">
+                <view style="display: inline-block;vertical-align:middle; font-size: 17px;"> 明细 </view>
+            </view>
+        </view>
+    </view>
+    <view class="weui-cells weui-cells_after-title margin-top-10" wx:if="{{show}}">
+        <view class="weui-cell weui-cell_access">
+            <view class="weui-cell__hd"><view class="iconfont icon-0051"></view></view>
+            <view class="weui-cell__bd">账户余额：￥{{userInfo.allMoney}} </view>
+        </view>
+    </view>
+</view>
+</template>
+<script>
+import wepy from 'wepy' 
+export default class User extends wepy.page { 
+      config = {
+        enablePullDownRefresh: true
+      }
+      data = {
+        userInfo: {},
+        show: false,
+        allMoney: 0
+      }
+      methods = {
+        scanCode (e) {
+          let that = this
+          wepy.scanCode({
+            success: (res) => {
+              console.log(res.path)
+              if (res.path != '' && res.path.indexOf('scene') > 0) {
+                let dd = res.path.substring(res.path.indexOf('scene')+6,res.path.length)
+                if (dd === 'null' || dd === 'undefined') {
+                  dd = null
+                }
+                dd = dd?dd:null
+                that.$parent.showpay(dd)
+              }
+            }
+          })
+        },
+        godd (e) {
+          wepy.switchTab({
+            url: '/pages/dd'
+          }) 
+        },
+        gozd (e) { 
+           wepy.navigateTo({
+            url: '/pages/zd?index=' + e.currentTarget.dataset.sid 
+          })
+        }
+      }
+      onLoad (option) {
+        let self = this
+        self.show = wepy.getStorageSync('ShowSid')
+        wepy.setNavigationBarTitle({
+          title: '个人中心'
+        })
+        this.$parent.getUserInfo(function (userInfo) {
+          console.log(userInfo)
+          if (userInfo) {
+            self.userInfo = userInfo
+            self.show = wepy.getStorageSync('ShowSid')
+            self.$apply()
+          }
+        }) 
+      }
+      onPullDownRefresh () {
+        let self = this
+        wepy.showNavigationBarLoading()
+        this.$parent.websetsid(function (userInfo) {
+          console.log(userInfo)
+          if (userInfo) {
+            self.userInfo = userInfo
+            self.show = wepy.getStorageSync('ShowSid')
+            self.$apply()
+            wepy.stopPullDownRefresh()
+            wepy.hideNavigationBarLoading()
+          }
+        }) 
+      }
+}
+</script>

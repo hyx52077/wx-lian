@@ -1,0 +1,7 @@
+
+  <view class="container"  wx:if="{{show}}">
+      <image src="{{home.image}}" mode="aspectFit" class="logo"/>
+      <view>{{home.shopName}}</view>
+      <view style="margin:10px;padding:10px;border:1px solid #CCC;border-radius: 5px;">{{home.remarks}}</view>
+      <image src="{{img}}" mode="aspectFill" wx:for="{{home.shopimages}}" wx:for-item="img" style="width:100%;" wx:key="*this"/>
+  </view>
