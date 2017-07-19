@@ -87,7 +87,7 @@ export default class User extends wepy.page {
         godd (e) {
           wepy.switchTab({
             url: '/pages/dd'
-          }) 
+          })
         },
         gozd (e) { 
            wepy.navigateTo({
