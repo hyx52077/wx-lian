@@ -136,15 +136,15 @@ export default class extends wepy.app {
                 }
                 data.openid = d.data.data.openid
                 wx.setStorageSync('Openid',data.openid) 
-                that.weblogin(data)
-                that.websetsid(cb)
+                that.weblogin(data,cb)
+               
               }
             })
           }
         }) 
       }})
   }
-  weblogin (adata) {
+  weblogin (adata,f) {
     const that = this
     adata.appid = that.globalData.APPID
     wepy.request({
@@ -153,16 +153,26 @@ export default class extends wepy.app {
       'method': 'POST',
       'header': {'content-type': 'application/x-www-form-urlencoded'},
       'success': function(d) {
-        if (d.data.code==="1") {
-          //更新信息成功
+
+        if (d.data.code==="1" && f) {
+           that.websetsid(f)
+        }else{
+          try {
+            wepy.clearStorageSync()
+          } catch (e) {
+            // Do something when catch error
+          }
+          wepy.showModal({
+            title: '请求出错',
+            content: '请退出小程序重新进入',
+            showCancel:false
+          })
         }
-        
       }
     })
   }
   websetsid(cb){
     const that = this
-    
     wepy.request({
       url: that.globalData.url + 'wechatAppUserInfo',
       data: {'openid':wepy.getStorageSync('Openid'),'appid': that.globalData.APPID},
@@ -172,37 +182,37 @@ export default class extends wepy.app {
         if (data.data.code==="1") {
           wepy.setStorageSync('ShowSid',parseInt(data.data.sid))
           that.globalData.userInfo = data.data.data
-          that.globalData.userInfo.error = false
+          that.globalData.userInfo['error'] = false
           cb && cb(that.globalData.userInfo)
         }else{
           console.log("获取用户信息失败")
           console.log(data)
-
           if (data.statusCode===500) {
-            that.globalData.userInfo.msg = "网络请求失败:500"
+            that.globalData.userInfo['msg'] = "网络请求失败:500"
           }else{
-            that.globalData.userInfo.msg = data.data.msg
+            that.globalData.userInfo['msg'] = data.data.msg
           }
-          that.globalData.userInfo.error = true
+          that.globalData.userInfo['error'] = true
           
           cb && cb(that.globalData.userInfo)
         }
       },
       fail: function(){
-        that.globalData.userInfo.error = true
-        that.globalData.userInfo.msg = "网络请求失败"
+        that.globalData.userInfo['error'] = true
+        that.globalData.userInfo['msg'] = "网络请求失败"
         cb && cb(that.globalData.userInfo)
       }
     })
   }
   getUserInfo(cb) {
     const that = this
-    if (this.globalData.userInfo) { 
+    if (that.globalData.userInfo && JSON.stringify(that.globalData.userInfo) !== "{}") { 
       cb && cb(this.globalData.userInfo)
       return
     }
     wepy.checkSession({
       success: function(res){ 
+        console.log(res)
          wepy.getUserInfo({
               withCredentials:true,
               success (UserInfo) {
@@ -214,8 +224,7 @@ export default class extends wepy.app {
                 }else{
                     console.log(id)
                     setdata.openid = id
-                    that.weblogin(setdata)
-                    that.websetsid(cb)
+                    that.weblogin(setdata,cb)
                 }
                 
               } 
@@ -433,10 +442,9 @@ export default class extends wepy.app {
       let scene = options.query
       let k = scene.hasOwnProperty('scene')?scene.scene:null
       console.log("存储订单号",k)
-      wepy.setStorageSync('dingdan',decodeURIComponent(k))
-      wepy.reLaunch({
-        url: '/pages/dian'
-      })
+      if(k){
+        this.showpay(decodeURIComponent(k))
+      }
      console.log("入场值",options.scene)
     }
   }

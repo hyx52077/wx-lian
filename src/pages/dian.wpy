@@ -42,19 +42,7 @@ export default class Dian extends wepy.page {
   }
   
   onShow (option) {
-    try {
-      var value = wepy.getStorageSync('dingdan')
-      if (value === 'null' || value === 'undefined') {
-        value = false
-      }
-      if (value) {
-        console.log('dd',value)
-        wepy.showNavigationBarLoading()
-        this.$parent.showpay(value)
-      }
-    }catch (e) {
-      // Do something when catch error
-    }
+   
    
   }
   onLoad (option) {

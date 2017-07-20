@@ -101,12 +101,21 @@ export default class User extends wepy.page {
         wepy.setNavigationBarTitle({
           title: '个人中心'
         })
+        console.log("加载用户信息")
         this.$parent.getUserInfo(function (userInfo) {
           console.log(userInfo)
-          if (userInfo) {
+          if(userInfo['error']){
+            wepy.showModal({
+              title: '获取用户失败',
+              content: userInfo['msg'],
+              showCancel:false
+            })
+          } else {
             self.userInfo = userInfo
             self.show = wepy.getStorageSync('ShowSid')
             self.$apply()
+            wepy.stopPullDownRefresh()
+            wepy.hideNavigationBarLoading()
           }
         }) 
       }
@@ -114,8 +123,13 @@ export default class User extends wepy.page {
         let self = this
         wepy.showNavigationBarLoading()
         this.$parent.websetsid(function (userInfo) {
-          console.log(userInfo)
-          if (userInfo) {
+          if(userInfo['error']){
+            wepy.showModal({
+              title: '获取用户失败',
+              content: userInfo['msg'],
+              showCancel:false
+            })
+          } else {
             self.userInfo = userInfo
             self.show = wepy.getStorageSync('ShowSid')
             self.$apply()
